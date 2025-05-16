@@ -199,8 +199,8 @@ func runGatewayServer(prodRepo *repository.StockProductRepository) {
 	mux.Handle("/", grpcMux)
 
 	alowedOrigins := []string{
-		"http://158.160.30.125:8081",
-		"http://158.160.30.125:8082",
+		"http://158.160.88.247:8081",
+		"http://158.160.88.247:8082",
 	}
 
 	c := cors.New(cors.Options{

@@ -68,7 +68,7 @@ services:
     environment:
       - DB_DSN=${DB_DSN}
     ports:
-      - "8087:8087" # gRPC-Gateway
+      - "8087:8087"
     networks:
       - v1_app-network
 
