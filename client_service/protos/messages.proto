@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package protos;
+
+import "google/api/annotations.proto";
+
+option go_package = "clients/protos;protos";
+
+// Сообщение для заказа
+message Order {
+  int64 UserID = 1;   
+  int64 Timestamp = 2;
+  int64 ProductSKU = 3;
+  int64 OrderID = 4;
+  string status = 5;
+  string reason = 6;
+}
+
+// Сообщение для продукта в заказе
+message Product {
+  int64 sku = 1;
+  int64 price = 2;
+  int64 cnt = 3;
+  string avatar = 4;
+  string name = 5;
+}
+
+message OrderWithProduct {
+  Order order = 1;
+  Product product = 2;
+  bool Available = 3;
+  bool balanceSufficient = 4;
+}
+
+message OrderRequest {
+  int64 order_id  = 1;
+}
+
+message OrderResponse { 
+  Order order = 1;
+}
+
+
+message GetAllOrdersRequest {}
+
+message GetAllOrdersResponse {
+  repeated Order orders = 1;
+}
+
+
+
+
+message GetOrdersByUserRequest {
+  int64 user_id = 1;
+}
+
+message GetOrdersByUserResponse {
+  repeated Order orders = 1;
+}
+
+
+
+// Сервис для работы с заказами
+service OrderService {
+  rpc CreateOrder(Order) returns (Order) {
+    option (google.api.http) = {
+      post: "/v1/orders"
+      body: "*"
+    };
+  }
+
+  rpc GetOrder(OrderRequest) returns (Order) {
+    option (google.api.http) = {
+      get: "/v1/-get-order/{order_id}"
+    };
+  }
+
+
+  rpc GetAllOrders(GetAllOrdersRequest) returns (GetAllOrdersResponse) {
+    option (google.api.http) = {
+      get: "/v1/orders"
+    };
+  }
+
+  rpc GetOrdersByUser(GetOrdersByUserRequest) returns (GetOrdersByUserResponse) {
+    option (google.api.http) = {
+      get: "/v1/orders/user/{user_id}"
+    };
+  }
+}
+
+

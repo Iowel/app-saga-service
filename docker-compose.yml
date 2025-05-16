@@ -1,0 +1,124 @@
+
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+    networks:
+      - v1_app-network
+
+
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9095:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:29092,OUTSIDE://localhost:9095
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "bash", "-c", "nc -z localhost 29092"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - v1_app-network
+
+
+
+
+  postgres_product:
+    image: postgres:15-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - v1_app-network
+
+
+
+  client:
+    build:
+      context: ./client
+    depends_on:
+      kafka:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DB_DSN=${DB_DSN}
+    ports:
+      - "8087:8087" # gRPC-Gateway
+    networks:
+      - v1_app-network
+
+
+
+
+  order_service:
+    build:
+      context: ./order_service
+    depends_on:
+      kafka:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DB_DSN=${DB_DSN}
+    networks:
+      - v1_app-network
+
+
+
+  product_service:
+    build:
+      context: ./product_service
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres_product:
+        condition: service_healthy
+    ports:
+      - "8088:8088"
+      - "8089:8089"
+    networks:
+      - v1_app-network
+
+
+
+  wallet_service:
+    build:
+      context: ./wallet_service
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - DB_DSN=postgres://postgres:1234@postgres_go:5432/authservice?sslmode=disable
+    networks:
+      - v1_app-network
+
+
+
+networks:
+  v1_app-network:
+    external: true

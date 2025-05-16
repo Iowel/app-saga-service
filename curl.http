@@ -1,0 +1,56 @@
+###
+curl -X POST http://localhost:8087/v1/orders \
+     -H "Content-Type: application/json" \
+     -d '{
+           "UserID":1,
+           "ProductSKU": 1
+         }'
+
+
+
+###
+curl -X GET http://localhost:8088/v1/get-order/1
+
+
+
+###
+curl -X GET http://localhost:8088/v1/products
+
+
+
+###
+curl -X GET http://localhost:8087/v1/orders/user/41
+
+
+
+
+###
+curl -X POST http://localhost:8087/v1/orders \
+     -H "Content-Type: application/json" \
+     -d '{
+           "UserID":1,
+           "Timestamp": 1,
+           "Products": [
+             {
+               "SKU": 1
+             }
+           ],
+           "OrderID": 12
+         }'
+
+
+
+
+###
+curl -X GET http://localhost:8087/v1/get-orders/12
+
+
+
+
+###
+curl -X GET http://localhost:8088/api/get-order/57
+
+
+
+
+

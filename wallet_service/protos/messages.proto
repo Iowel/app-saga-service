@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package protos;
+
+option go_package = "wallet/protos;protos";
+
+
+message Order {
+  int64 UserID = 1;   
+  int64 Timestamp = 2;
+  int64 ProductSKU = 3;
+  int64 OrderID = 4;
+  string status = 5;
+  string reason = 6;
+}
+
+
+message Product {
+  int64 sku = 1;
+  int64 price = 2;
+  int64 cnt = 3;
+  string avatar = 4;
+  string name = 5;
+}
+
+message OrderWithProduct {
+  Order order = 1;
+  Product product = 2;
+  bool Available = 3;
+  bool balanceSufficient = 4;
+}
+
