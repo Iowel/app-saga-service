@@ -8,7 +8,7 @@ services:
     ports:
       - "2181:2181"
     networks:
-      - v1_app-network
+      - app-base-server_app-network
 
 
 
@@ -32,7 +32,7 @@ services:
       timeout: 10s
       retries: 10
     networks:
-      - v1_app-network
+      - app-base-server_app-network
 
 
 
@@ -53,13 +53,13 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - v1_app-network
+      - app-base-server_app-network
 
 
 
   client:
     build:
-      context: ./client
+      context: ./client_service
     depends_on:
       kafka:
         condition: service_healthy
@@ -70,7 +70,7 @@ services:
     ports:
       - "8087:8087"
     networks:
-      - v1_app-network
+      - app-base-server_app-network
 
 
 
@@ -86,7 +86,7 @@ services:
     environment:
       - DB_DSN=${DB_DSN}
     networks:
-      - v1_app-network
+      - app-base-server_app-network
 
 
 
@@ -102,7 +102,7 @@ services:
       - "8088:8088"
       - "8089:8089"
     networks:
-      - v1_app-network
+      - app-base-server_app-network
 
 
 
@@ -115,7 +115,7 @@ services:
     environment:
       - DB_DSN=postgres://postgres:1234@postgres_go:5432/authservice?sslmode=disable
     networks:
-      - v1_app-network
+      - app-base-server_app-network
 
 
 
