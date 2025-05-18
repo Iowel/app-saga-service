@@ -120,5 +120,5 @@ services:
 
 
 networks:
-  v1_app-network:
+  app-base-server_app-network:
     external: true
