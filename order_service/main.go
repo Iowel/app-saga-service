@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"order_service/cache"
 	"order_service/kafka"
+	"order_service/model"
 	"order_service/protos"
 	"order_service/repository"
+	"strconv"
 	"time"
 
 	"github.com/IBM/sarama"
@@ -15,8 +18,9 @@ import (
 )
 
 type Orchestrator struct {
-	producer sarama.SyncProducer
-	repo     *repository.OrderRepository
+	producer  sarama.SyncProducer
+	repo      *repository.OrderRepository
+	cacheRepo cache.IPostCache
 }
 
 const consumerGroup = "order_service"
@@ -92,7 +96,7 @@ func (o *Orchestrator) ProcessCommitOrder(ctx context.Context, message *sarama.C
 	}
 	log.Printf("OrderID %d successfully committed!", product.Order.OrderID)
 
-	// Обновляем статус профиля
+	// обновляем статус профиля
 	// первые 3 сущности ето продукты, а после 3 идут статусы, их и обновляем
 	if product.Product.Sku > 3 {
 		productName := product.Product.Name
@@ -105,6 +109,26 @@ func (o *Orchestrator) ProcessCommitOrder(ctx context.Context, message *sarama.C
 		if err := o.repo.UpdateUserStatus(ctx, productName, userID); err != nil {
 			log.Printf("Failed to update user status: %v", err)
 		}
+
+		// Update redis cache
+		newProfile, _ := o.repo.GetProfileByID(int(userID))
+		newUser, _ := o.repo.GetUserByID(int(userID))
+
+		var cacheUser = &model.UserCache{
+			ID:        newUser.ID,
+			Email:     newUser.Email,
+			Password:  newUser.Password,
+			Name:      newUser.Name,
+			Role:      newUser.Role,
+			Avatar:    newProfile.Avatar,
+			Status:    newProfile.Status,
+			Wallet:    newProfile.Wallet,
+			CreatedAt: newUser.CreatedAt,
+			UpdatedAt: newUser.UpdatedAt,
+		}
+
+		idStr := "user:" + strconv.Itoa(newUser.ID)
+		o.cacheRepo.Set(idStr, cacheUser)
 	}
 
 	// обновляем статус заказа
@@ -153,6 +177,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// kafka
 	brokers := []string{"kafka:29092"}
 	ctx := context.Background()
 
@@ -160,33 +185,54 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer producer.Close()
 
+	// db
 	db, err := repository.NewDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Pool.Close()
 
+	// redis
+	redisCache := cache.NewRedisCache("redis:6379", 1, 99999999999)
+
+	// init Orchestrator
 	orc := Orchestrator{
-		producer: producer,
-		repo:     repository.NewOrderRepository(db),
+		producer:  producer,
+		repo:      repository.NewOrderRepository(db),
+		cacheRepo: redisCache,
 	}
 
-	if err := kafka.StartConsuming(ctx, brokers, "create_order", consumerGroup, orc.StartSaga); err != nil {
-		log.Fatal(err)
-	}
-	if err := kafka.StartConsuming(ctx, brokers, "product_checked", consumerGroup, orc.ProcessProductChecked); err != nil {
-		log.Fatal(err)
-	}
-	if err := kafka.StartConsuming(ctx, brokers, "balance_checked", consumerGroup, orc.ProcessBalanceChecked); err != nil {
-		log.Fatal(err)
-	}
-	if err := kafka.StartConsuming(ctx, brokers, "commit_order", consumerGroup, orc.ProcessCommitOrder); err != nil {
-		log.Fatal(err)
-	}
-	if err := kafka.StartConsuming(ctx, brokers, "cancel_order", consumerGroup, orc.CancelOrder); err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		if err := kafka.StartConsuming(ctx, brokers, "create_order", consumerGroup, orc.StartSaga); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	go func() {
+		if err := kafka.StartConsuming(ctx, brokers, "product_checked", consumerGroup, orc.ProcessProductChecked); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	go func() {
+		if err := kafka.StartConsuming(ctx, brokers, "balance_checked", consumerGroup, orc.ProcessBalanceChecked); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	go func() {
+		if err := kafka.StartConsuming(ctx, brokers, "commit_order", consumerGroup, orc.ProcessCommitOrder); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	go func() {
+		if err := kafka.StartConsuming(ctx, brokers, "cancel_order", consumerGroup, orc.CancelOrder); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	select {}
 }

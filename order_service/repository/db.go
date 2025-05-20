@@ -42,14 +42,14 @@ func waitForPostgres(dsn string, maxRetries int) error {
 		if err == nil {
 			err = pool.Ping(context.Background())
 			if err == nil {
-				log.Println("Successfully connected to PostgreSQL")
+				log.Println("Successfully connected to postgres")
 				pool.Close()
 				return nil
 			}
 			pool.Close()
 		}
-		log.Printf("PostgreSQL not ready, retrying... (%d/%d)\n", i+1, maxRetries)
+		log.Printf("postgres not ready, retrying... (%d/%d)\n", i+1, maxRetries)
 		time.Sleep(2 * time.Second)
 	}
-	return fmt.Errorf("could not connect to PostgreSQL after %d retries", maxRetries)
+	return fmt.Errorf("could not connect to postgres after %d retries", maxRetries)
 }

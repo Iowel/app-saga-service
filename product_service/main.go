@@ -63,7 +63,7 @@ func (h *OrderHandler) CheckProduct(ctx context.Context, message *sarama.Consume
 			Sku:   product.Sku,
 			Price: product.Price,
 			Cnt:   product.Cnt,
-			Name: product.Name,
+			Name:  product.Name,
 		},
 		Available: available,
 	}
@@ -199,6 +199,8 @@ func runGatewayServer(prodRepo *repository.StockProductRepository) {
 	mux.Handle("/", grpcMux)
 
 	alowedOrigins := []string{
+		"http://localhost:8081",
+		"http://localhost:8082",
 		"http://84.201.150.225:8081",
 		"http://84.201.150.225:8082",
 	}

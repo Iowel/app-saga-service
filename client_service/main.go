@@ -91,6 +91,8 @@ func runGatewayServer(orderRepo *repository.OrderRepository) {
 	mux.Handle("/", grpcMux)
 
 	alowedOrigins := []string{
+		"http://localhost:8081",
+		"http://localhost:8082",
 		"http://84.201.150.225:8081",
 		"http://84.201.150.225:8082",
 	}

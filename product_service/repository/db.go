@@ -46,13 +46,13 @@ func NewDB() (*Db, error) {
 	insertQuery := `
 		--Продукты
 	INSERT INTO products (sku, price, cnt, avatar, name) VALUES
-		(1, 25, 14, 'static/ball.png', 'Мяч'),
-		(2, 50, 17, 'static/snikers.png', 'Сникерс'),
-		(3, 150, 23, 'static/phone.png', 'Телефон'),
+		(1, 25, 67, 'static/ball.png', 'Мяч'),
+		(2, 50, 78, 'static/snikers.png', 'Сникерс'),
+		(3, 150, 134, 'static/phone.png', 'Телефон'),
 
 		--Статусы
-		(4, 1000, 16, 'static/status_gold.jpg', 'Золотой'),
-		(5, 5000, 21, 'static/status_diamond.png', 'Бриллиантовый')
+		(4, 1000, 60, 'static/status_gold.jpg', 'Золотой'),
+		(5, 5000, 60, 'static/status_diamond.png', 'Бриллиантовый')
 	ON CONFLICT (sku) DO NOTHING;
 `
 
@@ -67,21 +67,21 @@ func NewDB() (*Db, error) {
 
 }
 
-// для ожидания кафки
+// для ожидания базы
 func waitForPostgres(dsn string, maxRetries int) error {
 	for i := 0; i < maxRetries; i++ {
 		pool, err := pgxpool.New(context.Background(), dsn)
 		if err == nil {
 			err = pool.Ping(context.Background())
 			if err == nil {
-				log.Println("Successfully connected to PostgreSQL")
+				log.Println("Successfully connected to postgres")
 				pool.Close()
 				return nil
 			}
 			pool.Close()
 		}
-		log.Printf("PostgreSQL not ready, retrying... (%d/%d)\n", i+1, maxRetries)
+		log.Printf("postgres not ready, retrying... (%d/%d)\n", i+1, maxRetries)
 		time.Sleep(2 * time.Second)
 	}
-	return fmt.Errorf("could not connect to PostgreSQL after %d retries", maxRetries)
+	return fmt.Errorf("could not connect to postgres after %d retries", maxRetries)
 }
