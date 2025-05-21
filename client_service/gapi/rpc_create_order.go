@@ -41,13 +41,15 @@ func (server *Server) CreateOrder(ctx context.Context, req *protos.Order) (*prot
 		OrderID:    order.OrderID,
 	}
 
+	// ждем кафку
 	err = waitForKafka("kafka:29092", 10)
 	if err != nil {
-		return nil, status.Errorf(codes.Unavailable, "Kafka unavailable: path; %s, err: %v", op, err)
+		return nil, status.Errorf(codes.Unavailable, "kafka unavailable: path; %s, err: %v", op, err)
 	}
 
 	brokers := []string{"kafka:29092"}
 
+	// если дождались кафку то запускаем
 	syncProducer, err := kafka.NewSyncProducer(brokers)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create Kafka producer: path; %s, err: %v", op, err)
@@ -55,7 +57,7 @@ func (server *Server) CreateOrder(ctx context.Context, req *protos.Order) (*prot
 	defer syncProducer.Close()
 
 
-	// маршалим сообщения в протобуф
+	// маршалим сообщение в протобуф
 	msg, err := proto.Marshal(kafkaResponse)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to marshal message: path; %s, err: %v", op, err)
@@ -75,6 +77,7 @@ func (server *Server) CreateOrder(ctx context.Context, req *protos.Order) (*prot
 	return gRPCResponse, nil
 }
 
+// ждем кафку
 func waitForKafka(addr string, maxRetries int) error {
 	for i := 0; i < maxRetries; i++ {
 		conn, err := net.DialTimeout("tcp", addr, 3*time.Second)
