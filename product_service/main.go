@@ -37,6 +37,7 @@ func (h *OrderHandler) CheckProduct(ctx context.Context, message *sarama.Consume
 	}
 	log.Printf("Check OrderID: %d\n", order.OrderID)
 
+
 	// Проверка наличия продукта
 	product, err := h.repo.GetProduct(int(order.ProductSKU))
 	if err != nil {
@@ -44,6 +45,7 @@ func (h *OrderHandler) CheckProduct(ctx context.Context, message *sarama.Consume
 		return fmt.Errorf("db error: %w", err)
 	}
 
+	
 	available := product.Cnt > 0
 	if available {
 		// Уменьшаем количество товара, если доступно
@@ -234,6 +236,7 @@ func runGatewayServer(prodRepo *repository.StockProductRepository) {
 
 }
 
+// для ожидания кафки
 func waitForKafka(addr string, maxRetries int) error {
 	for i := 0; i < maxRetries; i++ {
 		conn, err := net.DialTimeout("tcp", addr, 3*time.Second)

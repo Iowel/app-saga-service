@@ -12,6 +12,7 @@ services:
 
 
 
+
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     ports:
@@ -24,6 +25,8 @@ services:
       - zookeeper
     networks:
       - app-base-server_app-network
+
+
 
 
   kafka:
@@ -51,6 +54,7 @@ services:
 
 
 
+
   postgres_product:
     image: postgres:15-alpine
     env_file:
@@ -68,6 +72,7 @@ services:
       retries: 5
     networks:
       - app-base-server_app-network
+
 
 
 
@@ -89,6 +94,7 @@ services:
 
 
 
+
   order_service:
     build:
       context: ./order_service
@@ -102,6 +108,7 @@ services:
       - REDIS_PORT=${REDIS_PORT}
     networks:
       - app-base-server_app-network
+
 
 
 
@@ -121,6 +128,8 @@ services:
 
 
 
+
+
   wallet_service:
     build:
       context: ./wallet_service
@@ -133,6 +142,8 @@ services:
       - DB_DSN=${DB_DSN}
     networks:
       - app-base-server_app-network
+
+
 
 
 

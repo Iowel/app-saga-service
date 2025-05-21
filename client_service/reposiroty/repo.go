@@ -18,7 +18,7 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, order *protos.Order) 
 	// начинаем транзакцию
 	tx, err := r.db.Pool.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, fmt.Errorf("failed transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
@@ -36,12 +36,12 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, order *protos.Order) 
 	).Scan(&order.OrderID)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert order: %w", err)
+		return nil, fmt.Errorf("failed insert order: %w", err)
 	}
 
 	// фиксируем транзакцию
 	if err := tx.Commit(ctx); err != nil {
-		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+		return nil, fmt.Errorf("failed commit transaction: %w", err)
 	}
 
 	return order, nil

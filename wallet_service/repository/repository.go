@@ -26,7 +26,7 @@ func (u *BalanceRepository) DeleteUserPrice(price int, userId int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	// Обновляем значение wallet в таблице profiles, вычитая price, если balance > 0
+	// Обновляем значение wallet и вычитаем price, если balance > 0
 	query := `
 		UPDATE profiles
 		SET wallet = wallet - $1
@@ -48,7 +48,7 @@ func (u *BalanceRepository) BackUserPrice(price int, userId int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	// Обновляем значение wallet в таблице profiles, добавляя price
+	// обнлвляем значение wallet добавляя price
 	query := `
 		UPDATE profiles
 		SET wallet = wallet + $1

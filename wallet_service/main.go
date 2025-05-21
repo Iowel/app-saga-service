@@ -29,7 +29,7 @@ func (w *WalletHandler) CheckBalance(ctx context.Context, message *sarama.Consum
 	}
 	log.Printf("Check balance for order %d, user %d, price %d", product.Order.OrderID, product.Order.UserID, product.Product.Price)
 
-	// Проверка и списание баланса
+	// проверка и списание баланса
 	err := w.repo.DeleteUserPrice(int(product.Product.Price), int(product.Order.UserID))
 
 	balanceSufficient := err == nil
@@ -39,7 +39,7 @@ func (w *WalletHandler) CheckBalance(ctx context.Context, message *sarama.Consum
 		log.Printf("Insufficient balance for order %d", product.Order.OrderID)
 	}
 
-	// Добавляем флаг в сообщение
+	// добавляем флаг в сообщение
 	product.BalanceSufficient = balanceSufficient
 
 	data, err := proto.Marshal(&product)
@@ -47,7 +47,7 @@ func (w *WalletHandler) CheckBalance(ctx context.Context, message *sarama.Consum
 		return err
 	}
 
-	// Отправляем результат проверки баланса (решение о cancel/commit принимает оркестратор!)
+	// отпралвляем результат проверки баланса 
 	log.Printf("Sending balance_checked for order %d (balanceSufficient: %v)", product.Order.OrderID, balanceSufficient)
 	if err := kafka.SendMessage(w.producer, "balance_checked", data); err != nil {
 		log.Printf("Failed to send balance_checked message: %v", err)

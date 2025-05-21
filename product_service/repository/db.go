@@ -27,6 +27,7 @@ func NewDB() (*Db, error) {
 
 	log.Println("Connected to PostgreSQL")
 
+	// создаем базу при старте
 	createTableQuery := `
 	CREATE TABLE IF NOT EXISTS products (
 		sku BIGINT PRIMARY KEY,
@@ -42,7 +43,7 @@ func NewDB() (*Db, error) {
 		log.Fatalf("Failed to create products table: %v\n", err)
 	}
 
-	// Вставим дефолтные значения
+	// вставляем дефолтные значения
 	insertQuery := `
 		--Продукты
 	INSERT INTO products (sku, price, cnt, avatar, name) VALUES
