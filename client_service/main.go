@@ -93,8 +93,8 @@ func runGatewayServer(orderRepo *repository.OrderRepository) {
 	alowedOrigins := []string{
 		"http://localhost:8081",
 		"http://localhost:8082",
-		"http://84.201.150.225:8081",
-		"http://84.201.150.225:8082",
+		"http://158.160.74.150:8081",
+		"http://158.160.74.150:8082",
 	}
 
 	c := cors.New(cors.Options{
